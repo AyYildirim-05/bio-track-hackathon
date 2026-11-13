@@ -2,6 +2,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
+
 from baseline import (
     AMINO_ACID_SET,
     AMINO_ACIDS,
@@ -11,7 +12,10 @@ from baseline import (
     train_default_baseline,
 )
 
-st.set_page_config(page_title="PEPTIDE-SCAN 2000 // ACP PREDICTOR", layout="centered")
+st.set_page_config(
+    page_title="PEPTIDE-SCAN 2000 // ACP PREDICTOR",
+    layout="centered",
+)
 
 # Y2K CRT Monitor Styling
 st.markdown(
@@ -23,7 +27,9 @@ st.markdown(
         font-family: 'Courier New', Courier, monospace;
     }
     h1, h2, h3, h4, p, label, .stMarkdown,
-    [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stCaptionContainer"] {
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricLabel"],
+    [data-testid="stCaptionContainer"] {
         color: #33ff33 !important;
         font-family: 'Courier New', Courier, monospace !important;
     }
@@ -65,7 +71,7 @@ default_seq = "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK"
 raw_input = st.text_input(
     "ENTER PEPTIDE SEQUENCE (CANONICAL 20 AMINO ACIDS):", value=default_seq
 )
-# Normalize whitespace and optional FASTA header lines while keeping characters to validate
+# Normalize whitespace and optional FASTA header lines
 seq_lines = [
     line.strip()
     for line in raw_input.strip().splitlines()
@@ -95,16 +101,20 @@ if st.button("[ EXECUTE BIO-ASSAY ]"):
 
         if prob >= 0.5:
             st.success(
-                f"CLASSIFICATION: POSITIVE — CANDIDATE ANTICANCER PEPTIDE (LEN={len(seq_input)})"
+                "CLASSIFICATION: POSITIVE — CANDIDATE ANTICANCER PEPTIDE "
+                f"(LEN={len(seq_input)})"
             )
         else:
             st.warning(
-                f"CLASSIFICATION: NEGATIVE — NON-ANTICANCER PEPTIDE (LEN={len(seq_input)})"
+                "CLASSIFICATION: NEGATIVE — NON-ANTICANCER PEPTIDE "
+                f"(LEN={len(seq_input)})"
             )
 
         st.markdown("#### RESIDUE COMPOSITION SPECTRUM")
-        aac_data = pd.DataFrame({
-            "Amino Acid": AMINO_ACIDS,
-            "Frequency": [bio_feats[f"aac_{aa}"] for aa in AMINO_ACIDS],
-        }).set_index("Amino Acid")
+        aac_data = pd.DataFrame(
+            {
+                "Amino Acid": AMINO_ACIDS,
+                "Frequency": [bio_feats[f"aac_{aa}"] for aa in AMINO_ACIDS],
+            }
+        ).set_index("Amino Acid")
         st.bar_chart(aac_data)

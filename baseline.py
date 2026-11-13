@@ -31,15 +31,17 @@ def extract_physicochemical(seq: str) -> dict:
 
     if length == 0:
         feats = {f"aac_{aa}": 0.0 for aa in AMINO_ACIDS}
-        feats.update({
-            "length": 0,
-            "charge_pH7_4": 0.0,
-            "hydrophobicity": 0.0,
-            "hydrophobic_moment": 0.0,
-            "isoelectric_point": 0.0,
-            "aliphatic_index": 0.0,
-            "boman_index": 0.0,
-        })
+        feats.update(
+            {
+                "length": 0,
+                "charge_pH7_4": 0.0,
+                "hydrophobicity": 0.0,
+                "hydrophobic_moment": 0.0,
+                "isoelectric_point": 0.0,
+                "aliphatic_index": 0.0,
+                "boman_index": 0.0,
+            }
+        )
         return feats
 
     pep = peptides.Peptide(clean_seq)
@@ -48,7 +50,7 @@ def extract_physicochemical(seq: str) -> dict:
     feats = {f"aac_{aa}": clean_seq.count(aa) / length for aa in AMINO_ACIDS}
 
     # 2. Biophysical properties key to anticancer peptide activity
-    # Clamp window to sequence length so sequences shorter than 11 residues do not return None
+    # Clamp window to sequence length so short sequences do not return None
     hm_window = min(11, length)
     hm_val = pep.hydrophobic_moment(window=hm_window)
 
@@ -109,20 +111,24 @@ def extract_esm2_embeddings(
 
 
 def train_default_baseline(out_path: str | Path = DEFAULT_MODEL_PATH):
-    data = pd.DataFrame({
-        "sequence": [
-            "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",  # Cecropin-like (ACP)
-            "GIGKFLHSAKKFGKAFVGEIMNS",                # Magainin-2 (ACP)
-            "FLPLIGRVLSGIL",                          # Temporin-like (ACP)
-            "AAADDDGGGSSSTTTNNNQQQ",                  # Non-ACP
-            "EEEEDDDDSSSSPPPPGGGG",                   # Non-ACP
-            "LLLLVVVVIIIIAAAAGGGG",                   # Non-ACP
-        ],
-        "label": [1, 1, 1, 0, 0, 0],
-    })
+    data = pd.DataFrame(
+        {
+            "sequence": [
+                "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",  # Cecropin-like (ACP)
+                "GIGKFLHSAKKFGKAFVGEIMNS",  # Magainin-2 (ACP)
+                "FLPLIGRVLSGIL",  # Temporin-like (ACP)
+                "AAADDDGGGSSSTTTNNNQQQ",  # Non-ACP
+                "EEEEDDDDSSSSPPPPGGGG",  # Non-ACP
+                "LLLLVVVVIIIIAAAAGGGG",  # Non-ACP
+            ],
+            "label": [1, 1, 1, 0, 0, 0],
+        }
+    )
 
     print("Extracting biophysical features...")
-    bio_df = pd.DataFrame([extract_physicochemical(s) for s in data["sequence"]])
+    bio_df = pd.DataFrame(
+        [extract_physicochemical(s) for s in data["sequence"]]
+    )
 
     print("Extracting ESM-2 embeddings...")
     esm_embs = extract_esm2_embeddings(data["sequence"].tolist())
@@ -139,5 +145,9 @@ def train_default_baseline(out_path: str | Path = DEFAULT_MODEL_PATH):
 if __name__ == "__main__":
     clf, X, y = train_default_baseline(DEFAULT_MODEL_PATH)
     print(f"Feature matrix shape: {X.shape}")
-    print("Predicted ACP probabilities:", np.round(clf.predict_proba(X)[:, 1], 3))
+    print(
+        "Predicted ACP probabilities:",
+        np.round(clf.predict_proba(X)[:, 1], 3),
+    )
     print(f"Saved model to {DEFAULT_MODEL_PATH} — setup complete!")
+

@@ -1,4 +1,16 @@
 {
     "python.defaultInterpreterPath": "/Users/yildirimahmetyusuf/Desktop/Pytorch/pytorch-env/bin/python",
-    "python.analysis.extraPaths": ["."]
+    "python.analysis.extraPaths": [
+        "."
+    ],
+    "python.analysis.typeCheckingMode": "off",
+    "flake8.args": [
+        "--max-line-length=88",
+        "--extend-ignore=E203,E501,W503"
+    ],
+    "black-formatter.args": [
+        "--line-length=88"
+    ],
+    "ruff.lineLength": 88,
+    "editor.formatOnSave": true
 }
