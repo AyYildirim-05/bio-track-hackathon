@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "/Users/yildirimahmetyusuf/Desktop/Pytorch/pytorch-env/bin/python",
+    "python.analysis.extraPaths": ["."]
+}
