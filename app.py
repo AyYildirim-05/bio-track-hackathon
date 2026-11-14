@@ -61,6 +61,7 @@ st.markdown("---")
 
 @st.cache_resource
 def load_model():
+    """Load the saved prediction model from disk (or train a starter one if missing)."""
     if not DEFAULT_MODEL_PATH.exists():
         clf, _, _ = train_default_baseline(DEFAULT_MODEL_PATH)
         return clf
@@ -73,6 +74,7 @@ default_seq = "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK"
 raw_input = st.text_input(
     "ENTER PEPTIDE SEQUENCE (CANONICAL 20 AMINO ACIDS):", value=default_seq
 )
+
 # Normalize whitespace and optional FASTA header lines
 seq_lines = [
     line.strip()

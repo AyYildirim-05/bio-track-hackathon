@@ -17,7 +17,7 @@ DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "acp_model.joblib"
 
 
 def clean_sequence(seq: str) -> str:
-    """Normalize a peptide sequence, stripping FASTA headers and whitespace."""
+    """Clean text input so only valid amino acid letters remain."""
     lines = [
         line.strip()
         for line in str(seq).strip().splitlines()
@@ -28,6 +28,7 @@ def clean_sequence(seq: str) -> str:
 
 
 def extract_physicochemical(seq: str) -> dict:
+    """Calculate basic chemical stats (length, charge, letter counts) for a sequence."""
     clean_seq = clean_sequence(seq)
     length = len(clean_seq)
 
@@ -68,6 +69,7 @@ def extract_physicochemical(seq: str) -> dict:
 
 @lru_cache(maxsize=2)
 def _load_esm2_model(model_name: str = "facebook/esm2_t6_8M_UR50D"):
+    """Load the pretrained protein AI model into memory once."""
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -85,6 +87,7 @@ def _load_esm2_model(model_name: str = "facebook/esm2_t6_8M_UR50D"):
 def extract_esm2_embeddings(
     sequences: list[str], model_name: str = "facebook/esm2_t6_8M_UR50D"
 ) -> np.ndarray:
+    """Convert sequences into numerical vectors using the protein AI model."""
     if not sequences:
         return np.empty((0, 320), dtype=np.float32)
 
@@ -113,6 +116,7 @@ def extract_esm2_embeddings(
 
 
 def train_default_baseline(out_path: str | Path = DEFAULT_MODEL_PATH):
+    """Train and save a quick starter model using 6 example sequences."""
     data = pd.DataFrame(
         {
             "sequence": [

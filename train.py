@@ -1,8 +1,9 @@
 """
-Takes any hackathon CSV dataset (sequence and label columns), runs Stratified
-Cross-Validation reporting MCC, ROC-AUC, and F1, trains the final model
-(RandomForest + LightGBM soft-voting ensemble), and saves acp_model.joblib.
+Loads a CSV dataset of sequences and 0/1 labels, tests model accuracy,
+trains the final prediction model, and saves it to acp_model.joblib.
 """
+
+from __future__ import annotations
 
 import argparse
 import warnings
@@ -21,15 +22,12 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.metrics import f1_score, matthews_corrcoef, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
-warnings.filterwarnings(
-    "ignore", message="X does not have valid feature names"
-)
+warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 
 def build_feature_matrix(sequences: list[str]) -> np.ndarray:
-    print(
-        f"Extracting biophysical descriptors for {len(sequences)} peptides..."
-    )
+    """Turn a list of text sequences into a table of numbers for the model."""
+    print(f"Extracting biophysical descriptors for {len(sequences)} peptides...")
     bio_df = pd.DataFrame([extract_physicochemical(s) for s in sequences])
 
     print("Extracting ESM-2 protein language model embeddings...")
@@ -39,14 +37,13 @@ def build_feature_matrix(sequences: list[str]) -> np.ndarray:
 
 
 def make_ensemble(n_train_samples: int) -> VotingClassifier:
+    """Create a model that averages predictions from Random Forest and LightGBM."""
     min_child_samples = max(1, min(20, n_train_samples // 5))
     return VotingClassifier(
         estimators=[
             (
                 "rf",
-                RandomForestClassifier(
-                    n_estimators=300, random_state=42, n_jobs=-1
-                ),
+                RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1),
             ),
             (
                 "lgbm",
@@ -64,9 +61,8 @@ def make_ensemble(n_train_samples: int) -> VotingClassifier:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Train Anticancer Peptide Classifier"
-    )
+    """Read the CSV file, score the model, train on all data, and save the model."""
+    parser = argparse.ArgumentParser(description="Train Anticancer Peptide Classifier")
     parser.add_argument(
         "--data",
         type=str,
@@ -93,11 +89,7 @@ def main():
     )
     args = parser.parse_args()
 
-    df = (
-        pd.read_csv(args.data)
-        .dropna(subset=[args.seq_col, args.label_col])
-        .copy()
-    )
+    df = pd.read_csv(args.data).dropna(subset=[args.seq_col, args.label_col]).copy()
     df[args.seq_col] = df[args.seq_col].astype(str).map(clean_sequence)
     df = df[df[args.seq_col].str.len() > 0].reset_index(drop=True)
 
@@ -112,9 +104,7 @@ def main():
     unique_classes, class_counts = np.unique(y, return_counts=True)
     if len(unique_classes) != 2:
         found = unique_classes.tolist()
-        raise ValueError(
-            f"Expected binary labels (2 classes), found: {found}"
-        )
+        raise ValueError(f"Expected binary labels (2 classes), found: {found}")
 
     X = build_feature_matrix(sequences)
 
@@ -154,4 +144,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
